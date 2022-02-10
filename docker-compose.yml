@@ -1,0 +1,55 @@
+networks:
+  proxy:
+    external: false
+    name: proxy
+
+services:
+  reverse-proxy:
+    image: traefik
+    ports:
+      # HTTP port
+      - "80:80"
+      # HTTPS port
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the location of the config file
+      - ./config:/etc/traefik
+      # Mount the location of the the certs
+      - ./cert:/cert
+    networks:
+      - proxy
+    command:
+      ## Traefik is configured by the following commands:
+      ## Opt out of sharing usage information
+      - --global.sendAnonymousUsage=false
+      ## Log 
+      - --log.level=ERROR 
+      - --log.filePath=/var/log/traefik/traefik.log
+      - --log.format=common
+      ## Access log 
+      - --accesslog=true
+      - --accesslog.filepath=/var/log/traefik/access.log
+      - --accesslog.format=common
+      ## Provider 
+      - --providers.docker=true 
+      - --providers.docker.exposedbydefault=false 
+      - --providers.file.directory=/etc/traefik
+      - --providers.file.watch=true
+      ## Entrypoints 
+      - --entrypoints.web.address=:80 
+      - --entrypoints.websecure.address=:443 
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      ## Certificates
+      - --certificatesresolvers.certresolver.acme.httpchallenge=true 
+      - --certificatesresolvers.certresolver.acme.httpchallenge.entrypoint=web 
+      - --certificatesresolvers.certresolver.acme.email=ed@webnunez.com
+      - --certificatesresolvers.certresolver.acme.storage=/cert/acme.json 
+      ## API Settings 
+      - --api.insecure=true 
+      - --api.dashboard=true 
+      - --api.debug=true 
