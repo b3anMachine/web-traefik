@@ -1,29 +1,6 @@
-version: '3'
-
-networks:
-  proxy:
-    external: false
-    name: proxy
 
 services:
   reverse-proxy:
-    image: traefik
-    ports:
-      # HTTP port
-      - "80:80"
-      # HTTPS port
-      - "443:443"
-      # The Web UI (enabled by --api.insecure=true)
-      - "8080:8080"
-    volumes:
-      # So that Traefik can listen to the Docker events
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Mount the location of the config file
-      - ./config:/etc/traefik
-      # Mount the location of the the certs
-      - ./cert:/cert
-    networks:
-      - proxy
     command:
       ## Traefik is configured by the following commands:
       ## Opt out of sharing usage information
@@ -47,11 +24,11 @@ services:
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       ## Certificates
-    #  - --certificatesresolvers.certresolver.acme.httpchallenge=true 
-    #  - --certificatesresolvers.certresolver.acme.httpchallenge.entrypoint=web 
-    #  - --certificatesresolvers.certresolver.acme.email=ed@webnunez.com
-    #  - --certificatesresolvers.certresolver.acme.storage=/cert/acme.json 
+      - --certificatesresolvers.prodcertresolver.acme.httpchallenge=true 
+      - --certificatesresolvers.prodcertresolver.acme.email=ed@webnunez.com
+      - --certificatesresolvers.prodcertresolver.acme.storage=/cert/acme.json 
+      - --certificatesresolvers.prodcertresolver.acme.httpchallenge.entrypoint=web 
       ## API Settings 
-      - --api.insecure=true 
-      - --api.dashboard=true 
-      - --api.debug=true 
+      - --api.insecure=false 
+      - --api.dashboard=false 
+      - --api.debug=false 
