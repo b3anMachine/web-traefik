@@ -1,6 +1,11 @@
 
 services:
   reverse-proxy:
+    volumes:
+      # Mount the location of the config file
+      - /etc/traefik:/etc/traefik
+      # Mount the location of the the certs
+      - /cert:/cert
     command:
       ## Traefik is configured by the following commands:
       ## Opt out of sharing usage information
